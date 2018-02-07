@@ -45,4 +45,4 @@ De 1 pagina ervaring wordt bereikt door het inladen van de content via Javascrip
 * SPA's zijn gevoeliger voor XSS (CrossSite Scripting), reden hiervoor is omdat aanvallers via de homepagian de client-side scripts in de applicatie kunnen injecteren.
 
 ## Best practices
-...
+https://github.com/airbnb/javascript#classes--constructors

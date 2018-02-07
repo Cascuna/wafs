@@ -1,0 +1,8 @@
+container {
+    display: grid;
+    grid-auto-columns: repeat(3, 1fr);
+    grid-gap: 1em;
+}
+
+
+
