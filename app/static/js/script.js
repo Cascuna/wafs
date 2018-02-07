@@ -14,13 +14,19 @@
 
     class Sections{
         constructor() {
-            
+            this.nav = document.querySelector("nav ul")
+            this.sections = this.retrieveSections()
             this.constructNavBar()
             //TODO: Implementatie volgt
         }
 
-        toggle(event){
-            console.log(event)
+        toggle(hash){
+            console.log(hash)
+            for(let section of this.sections){
+                if(section.id != hash){
+                    document.getElementById(section.id).classList.add("hidden");
+                } 
+            }
         }
 
         retrieveSections(){
@@ -29,21 +35,19 @@
         }
 
         createNavItem(section){
-            let nav = document.querySelector("nav ul")
             let li = document.createElement("li")
-            li.id = section
-            
+           
             let anchor = document.createElement("a")
             anchor.href = "#" + section
             anchor.innerText = section
 
             li.appendChild(anchor)
-            nav.appendChild(li)
-            console.log(nav)
+            this.nav.appendChild(li)
+            console.log(this.nav)
         }
 
         constructNavBar(){
-            for(let section of this.retrieveSections()){
+            for(let section of this.sections){
                 console.log(section.id)
                 this.createNavItem(section.id)
             }
@@ -51,7 +55,7 @@
 
     }
 
-    class Routes{
+    class Routes    {
         constructor() {
             this.sections = new Sections()
             this.init()
@@ -61,7 +65,7 @@
         init(){
             self = this;
             window.addEventListener("hashchange", function(event){
-                self.sections.toggle(location.hash)
+                self.sections.toggle(location.hash.replace(/^#/, ""))
             });
         }
     }
