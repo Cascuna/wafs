@@ -1,13 +1,73 @@
-container {
+/* h1, h2, h3, h4, h5, h6, ul, a, p {
+    min-width: 30em;
+} */
+html {
+    background-color: #FF6444;
+}
+body {
+    margin: 0px;
     display: grid;
-    grid-auto-columns: repeat(3, 1fr);
     grid-gap: 1em;
+    grid-template-columns: 1fr 4fr 1fr;
 }
 
-nav ul{
+nav {
+    grid-column: span 3;
+    text-align: center;
+    width:100%;
+    background-color: #00ADA9;
+    top: -.5em;
+
+}
+
+nav ul {
     list-style: none;
+   
 }
 
-.hidden{
-    display: none;
+nav ul li {
+    display: inline-block;
+    margin: .3em;
+}
+
+nav ul li a {
+    text-decoration: none;
+    padding: 13px 10px 13px 10px;
+}
+
+/* nav ul li a:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+} */
+
+nav ul li::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background: #000;
+    transition: width .3s;
+}
+
+nav ul li:hover::after {
+    width: 100%;
+    /* transition: width .3s; */
+}
+
+section {
+    grid-column: 2;
+    display: block;
+    position: relative;
+    transition: display 2s linear margin-top 2s step-start, z-index 2s step-start;
+}
+
+.hidden {
+    opacity: 0;
+    margin-top: -330px;
+    z-index: -5;
+    transition-timing-function: linear, step-end, step-end;
+  
+}
+
+.visible {
+    display: block;
 }
