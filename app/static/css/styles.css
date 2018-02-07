@@ -4,5 +4,7 @@ container {
     grid-gap: 1em;
 }
 
-
+nav ul{
+    list-style: none;
+}
 
