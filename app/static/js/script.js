@@ -20,6 +20,12 @@
             console.log("Ik ben geinitaliseerd!")
         }
     }
+    /* App.prototype.init, op deze manier bind je de functie naar het prototype
+     en alleen naar de prototype. 
+     Op de normale manier wordt het gebonden op de instantie van het object,
+     wat als gevolg heeft dat elke insantie een eigen functie heeft.
+     In plain JS is dit het standaard binden van de functie naar het "object" */
+
 
     class Sections{
         constructor() {
@@ -31,7 +37,7 @@
         toggle(hash){
             console.log(hash)
             for(let section of this.sections){
-                if(section.id != hash){
+                if(section.id !== hash){
                     document.getElementById(section.id).classList.add("hidden")
                 }
                 else(
