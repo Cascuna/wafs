@@ -1,3 +1,6 @@
+# BELANGERIJK
+Voor mijn code reviews heb ik issues gebruikt, omdat ik het fijner vind om mensen kennis te geven over wat ze beter kunnen doen door middel van issues, ipv de code aan te passen. Dan lopen ze namenlijk het risico dat ze er niet ckritisch naar kijken.
+Ik heb bas en Vincent een code review gegeven.
 # wafs
 The course repo for 'Web App From Scratch'
 
@@ -45,4 +48,22 @@ De 1 pagina ervaring wordt bereikt door het inladen van de content via Javascrip
 * SPA's zijn gevoeliger voor XSS (CrossSite Scripting), reden hiervoor is omdat aanvallers via de homepagian de client-side scripts in de applicatie kunnen injecteren.
 
 ## Best practices
-https://github.com/airbnb/javascript#classes--constructors
+(van de sheets)
+Don't use global variables/objects
+Declare variables at top of scope
+Use short clear meaningful names (English)
+Work in strict mode
+camelCase your code if(code != Constructor || CONSTANTS)
+Place external scripts at the bottom of the page
+Indent your code
+Always code comment
+(Eigen best practices)
+Always explain syntactic sugar in your personal projects to force yourself to think critically about the problem the sugar tackles
+Adhere to the SRP principle
+Adhere to the DRY principle
+Try to always keep your code explicit, leave magic to wizards
+Don't focus on optimilisation untill you need to
+
+https://github.com/airbnb/javascript
+
+
