@@ -20,9 +20,13 @@ nav {
 
 }
 
+
 nav ul {
-    list-style: none;
-   
+    list-style: none;  
+}
+
+nav ul li:focus {
+    background-color: #00ADA9;
 }
 
 nav ul li {

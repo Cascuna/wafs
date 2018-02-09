@@ -37,12 +37,14 @@
         toggle(hash){
             console.log(hash)
             for(let section of this.sections){
-                if(section.id !== hash){
+                if(section.id != hash){
                     document.getElementById(section.id).classList.add("hidden")
                 }
-                else(
+                else{
                     document.getElementById(section.id).classList.remove("hidden")
-                ) 
+            }
+                    
+                 
             }
         }
 
@@ -79,6 +81,7 @@
             this.init()
         }
         init(){
+            self = this;
             // De call naar de toggle functie is in een functie gewrapt, zodat de
             // scope die meegeven wordt niet 'hashchanged' is. 
             window.addEventListener("hashchange", function(event){
