@@ -4,7 +4,7 @@ Ik heb bas en Vincent een code review gegeven.
 # wafs
 The course repo for 'Web App From Scratch'
 
-## Advantages and disadvantages of JavaScript libraries/frameworks
+## Voordelen en nadelen van Javascript Frameworks & Libraries
 ## Wat zijn Frameworks & Libraries 
 
 **Framework**  
@@ -49,20 +49,20 @@ De 1 pagina ervaring wordt bereikt door het inladen van de content via Javascrip
 
 ## Best practices
 (van de sheets)
-Don't use global variables/objects
-Declare variables at top of scope
-Use short clear meaningful names (English)
-Work in strict mode
-camelCase your code if(code != Constructor || CONSTANTS)
-Place external scripts at the bottom of the page
-Indent your code
-Always code comment
+* Don't use global variables/objects
+* Declare variables at top of scope
+* Use short clear meaningful names (English)
+* Work in strict mode
+* camelCase your code if(code != Constructor || CONSTANTS)
+* Place external scripts at the bottom of the page
+* Indent your code
+* Always code comment  
 (Eigen best practices)
-Always explain syntactic sugar in your personal projects to force yourself to think critically about the problem the sugar tackles
-Adhere to the SRP principle
-Adhere to the DRY principle
-Try to always keep your code explicit, leave magic to wizards
-Don't focus on optimilisation untill you need to
+* Always explain syntactic sugar in your personal projects to force yourself to think critically about the problem the sugar tackles
+* Adhere to the SRP principle
+* Adhere to the DRY principle
+* Try to always keep your code explicit, leave magic to wizards
+* Don't focus on optimilisation untill you need to
 
 https://github.com/airbnb/javascript
 
