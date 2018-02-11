@@ -31,7 +31,7 @@ Een set aan functies welke je kan gebruiken, zodat je deze functies zelf niet ho
 * Je leert het framework of de library kennen, maar niet daadwerkelijk Javascript. Als gevolg hiervan zou je alsnog moeite kunnen hebben met deze functies zelf implementeren zonder framework/library.
 * Vendor lock-in, als je een framework oppakt wordt je vrijwel geforceert om het op het manier van het framework te doen, wat je erg kan limiteren.
 
-## Advantages and disadvantages of client-side single page web apps
+## Voordelen en nadelen van client-side single page web apps
 ## Inleiding
 Een single page application is een applicatie waarbij er geen pagina refreshes nodig zijn om door de website te navigeren. Websites die dit gebruiken zijn bijvoorbeeld Github, Youtube etc.
 De 1 pagina ervaring wordt bereikt door het inladen van de content via Javascript, een grote dependency van deze applicaties.
