@@ -166,74 +166,94 @@ class apiSettings {
         }
     }
 
-    class TemplateEngine{
-        constructor(html, context){
+    let instance;
+    class TemplateEngineObj{
+        constructor(){
+                // Singleton principe
+            if (!instance) {
+                instance = this;
+            }
+            else {
+                return instance
+            }
             // Regex om op ALLE (/g) blocks die beginnen met {{ en eindingen met }}
-            this.dynamicBlockRegex = /<%([^%>]+)?%>/g, match
+            this.dynamicBlockRegex = /<%([^%>]+)?%>/g
             // Functies welke niet gepusht moeten worden naar de array, maar gewoon uitgevoerd.
-            let escapeables = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g
+            this.escapeables = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g
+            this.code = ['var changes=[];\n']
+            
+            // het concateneren van de strings zou voor errors zorgen,
+            // dus gebruik ik een array waar ik alles naar schrijf, en de waarde vervolgens join
+            // Ik zet deze array in code, omdat dit de hele representatie van de code is, we beginnen met
+            // de array declaratie
+            
 
-            let code = ['var changes=[];\n']
-
-            // Cursor om onze positie in de HTML te bepalen
-            let cursor = 0
+           
         }
-        add = function(line, js){
+        add(line, js){
             // Check of de lines tekens bevatten die in escapables voor komen,
             // zoja, append 'as is', anders push het in de changes array
-            js? code += line.match(escapeables) ? line + '\n' : 'changes.push(' + line + ');\n' :
-            code += 'changes.push("' + line.replace(/"/g, '\\"') + '");\n';
+            js? this.code += line.match(this.escapeables) ? line + '\n' : 'changes.push(' + line + ');\n' :
+            this.code += 'changes.push("' + line.replace(/"/g, '\\"') + '");\n';
+        }
+
+        constructTemplate(html, context){
+            this.code = ['var changes=[];\n']
+            let match 
+             // Cursor om onze positie in de HTML te bepalen
+            let cursor = 0
+            while(match = this.dynamicBlockRegex.exec(html)) {
+                /* 
+                match result = 
+                0: "{{name}}"  ​
+                1: "name"
+                // Index is de index van de geselecteerde html
+                index: 21
+                input: "<p>Hello, my name is {{name}}. I'm {{age}} years old.</p>"
+                length: 2
+                */
+                console.log(match)
+                // Add the HTML section
+                this.add(html.slice(cursor, match.index))
+                // replace
+                this.add(match[1], true)
+                cursor = match.index + match[0].length;
+                // html = html.replace(match[0], options[match[1]])
+                console.log(html)
+            }
+            this.add(html.substr(cursor, html.length - cursor));
+            this.code += 'return changes.join("");';
+            console.log(this.code)
+            // We gebruiken hier .apply zodat de scope van het script automatisch geset wordt, en
+            // we dus this.name etc kunneng ebruiken. Op deze manier hebben we geen params nodig.
+            return new Function(this.code.replace(/[\r\t\n]/g, '')).apply(context);
         }
     }
-
+    // let instance = null;
     const TemplateEngine = function(html, options){
-    // http://krasimirtsonev.com/blog/article/Javascript-template-engine-in-just-20-line
-        // Regex om op ALLE (/g) blocks die beginnen met {{ en eindingen met }}
+       
         let dynamicBlockRegex = /<%([^%>]+)?%>/g, match
-        // Functies welke niet gepusht moeten worden naar de array, maar gewoon uitgevoerd.
         let escapeables = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g
 
-        // het concateneren van de strings zou voor errors zorgen,
-        // dus gebruik ik een array waar ik alles naar schrijf, en de waarde vervolgens join
-        // Ik zet deze array in code, omdat dit de hele representatie van de code is, we beginnen met
-        // de array declaratie
+        
         let code = ['var changes=[];\n']
-        // helpt ons bepalen in de html waar we zitten
         let cursor = 0
         
         var add = function(line, js){
-            // Check if de lines tekens bevatten die in escapables voor komen,
-            // zoja, push data 'as is', anders push het in de renderables
             js? code += line.match(escapeables) ? line + '\n' : 'changes.push(' + line + ');\n' :
             code += 'changes.push("' + line.replace(/"/g, '\\"') + '");\n';
         }
 
         while(match = dynamicBlockRegex.exec(html)) {
-        /* 
-        match result = 
-        0: "{{name}}"  ​
-        1: "name"
-        // Index is de index van de geselecteerde html
-        index: 21
-        input: "<p>Hello, my name is {{name}}. I'm {{age}} years old.</p>"
-        length: 2
-        */
-            console.log(match)
-            // Add the HTML section
             add(html.slice(cursor, match.index))
-            // replace
             add(match[1], true)
             cursor = match.index + match[0].length;
-            // html = html.replace(match[0], options[match[1]])
             console.log(html)
         }
         add(html.substr(cursor, html.length - cursor));
         code += 'return changes.join("");';
         console.log(code)
-        // We gebruiken hier .apply zodat de scope van het script automatisch geset wordt, en
-        // we dus this.name etc kunneng ebruiken. Op deze manier hebben we geen params nodig.
         return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
-
     }
 
     /*
@@ -245,7 +265,7 @@ class apiSettings {
     '<p>none</p>' +
 '<%}%>';
     */
-
+   
     let testhtml = '<%if (this.name) {%>' +
     '<%for(var index in this.types) {%>' + 
     '<a href="#"><%index%></a>' +
@@ -253,6 +273,9 @@ class apiSettings {
     '<%} else {%>' +
         '<p>none</p>' +
     '<%}%>';
+    const t = new TemplateEngineObj()
+    t.constructTemplate(testhtml,
+        {name: "Alex"})
     console.log(TemplateEngine(testhtml, {
     name: "Alex",
     profile: { age: 22 },
