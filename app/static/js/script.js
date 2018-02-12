@@ -2,9 +2,11 @@
    Aldus, de klasses zijn niet direct via het window object te vinden.
 */
 
-
 'use strict'
 {
+
+    let instance;
+
     /* het keywoord class hier is syntaxic sugar voor een Constructor Function.
     Dit is dan ook de reden dat een constructor() verplicht is binnen klasses.
 
@@ -79,96 +81,115 @@
 
     class Routes    {
         constructor() {
-            this.sections = new Sections()
             this.init()
         }
         init(){
-            self = this;
-
-            console.log(self)
+            this.sections = new Sections()
+            console.log(this.sections)
+            const routesthis = this;
             // De call naar de toggle functie is in een functie gewrapt, zodat de
             // scope die meegeven wordt niet 'hashchanged' is. 
             window.addEventListener("hashchange", function(event){
-                self.sections.toggle(location.hash.replace(/^#/, ""))
+                console.log(routesthis)
+                routesthis.sections.toggle(location.hash.replace(/^#/, ""))
             });
         }
     }
 
-// var request = new XMLHttpRequest();
-// request.open('GET', '/my/url', true);
 
-// request.onload = function() {
-//   if (request.status >= 200 && request.status < 400) {
-//    // Success!
-//     var data = JSON.parse(request.responseText);
-//   } else {
-//    // We reached our target server, but it returned an error
-
-//   }
-// };
-
-// request.onerror = function() {
-//  // There was a connection error of some sort
-// };
-class apiSettings {
-    constructor(){
-        this.api = 'https://www.rijksmuseum.nl/api/nl/'
-        this.async = true
-        this.key = 'qip4zAy0'
-        this.format = 'json'
+    // TODO: Verplaats naar modules 
+    class apiSettings {
+        constructor(){
+            this.api = 'https://www.rijksmuseum.nl/api/nl/'
+            this.async = true
+            this.key = 'qip4zAy0'
+            this.format = 'json'
+        }
     }
-}
 
     class Request {
-        constructor(path='collection/', type='GET') {
+        constructor(type='GET') {
             this.settings = new apiSettings()
             this.request = new XMLHttpRequest()
-            this.absolute_url = this.settings.api + path + '?key=' + this.settings.key + '&format=' + this.settings.format
-            console.log(this.absolute_url)
-            this.request.open('GET', this.absolute_url, true)
-            
-            this.send()
         }
+
+        methode(){
+            this.send('collection')
+            // while(this.request.readyState != 4){
+            //     console.log(this.request.readyState)
+                
+            // }
+            console.log(this.request.status)
+        }
+
+        send(path, type='GET'){
+            console.log('fired')
+            let absolute_url = this.buildAbsoluteUrl(path, this.settings.format)
+            this.request.open('GET', absolute_url, true)
+            this._send()
+           
+        }
+
+        buildAbsoluteUrl(path){
+            let _baseUrl = this.settings.api + path + '?key=' + this.settings.key
+            let absolute_url = _baseUrl
+            for(let arg of arguments){
+                absolute_url += '&' + arg
+            }
+            return absolute_url
+        }
+
+
         success(responseText){
             console.log(responseText)
             let response = JSON.parse(responseText)
-            console.log(response['artObjects'])
-            this.buildTemplate(response['artObjects'])
-            return response
-        }
-
-        buildTemplate(objs){
-            this.templateengine = new TemplateEngineObj()
-            this.objs = objs
-            let result = this.templateengine.render(
-                "<%for(obj of this.objs) {%> <%obj.title%> <%}%>", {'objs': this.objs})
-            console.log(result)
-            let listview = document.getElementById("rijksmuseum-listview")
+            console.log('succ')
+            return responseText
         }
 
         failure(request){
             console.log(request.status)
             console.log(request.responseText)
+            console.log('fail')
+            return request
         }
 
         onload(){
             self = this
             self.request.onload = function() {
                 if (self.request.status >= 200 && self.request.status <= 400) {
-                    self.success(self.request.responseText)
+                    self.success(self.request)
                 } else {
-                    self.failure(self.request)
+                    // self.failure(self.request)
                 }
             }
         }
 
-        send(){
+        _send(){
             this.onload()
             this.request.send()
         }
     }
 
-    let instance;
+    class RijksmuseumListRequest extends Request {
+        success(request){
+            console.log('override worked')
+            this.templateengine = new TemplateEngineObj()
+            jsone = json.parse(request.responseText)
+            let result = this.templateengine.render(
+                "<%for(obj of this.objs) {%> <li> <a href=#rijksmuseum-<%obj.id%>> <%obj.title%> </a> </li> <%}%>", {'objs': jsone['artObjects']})
+            let listview = document.getElementById("rijksmuseum-listview")
+            listview.insertAdjacentHTML('beforeend', result)
+        }
+
+        getList(path){
+            this.send(path)
+            // console.log(this.request.status)
+
+        }
+    }
+
+
     class TemplateEngineObj{
         constructor(){
                 // Singleton principe
@@ -184,11 +205,6 @@ class apiSettings {
             this.escapeables = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g
             this.code = ['var changes=[];\n']
             
-            // het concateneren van de strings zou voor errors zorgen,
-            // dus gebruik ik een array waar ik alles naar schrijf, en de waarde vervolgens join
-            // Ik zet deze array in code, omdat dit de hele representatie van de code is, we beginnen met
-            // de array declaratie
-            
 
            
         }
@@ -200,6 +216,10 @@ class apiSettings {
         }
 
         render(html, context){
+            // het concateneren van de strings zou voor errors zorgen,
+            // dus gebruik ik een array waar ik alles naar schrijf, en de waarde vervolgens join
+            // Ik zet deze array in code, omdat dit de hele representatie van de code is, we beginnen met
+            // de array declaratie
             this.code = ['var changes=[];\n']
             let match 
              // Cursor om onze positie in de HTML te bepalen
@@ -256,8 +276,9 @@ class apiSettings {
                 fragment = this.root != '/' ? fragment.replace(this.root, '') : fragment;
             }else {
                 var match = window.location.href.match(/#(.*)$/);
+                console.log(match)
                 fragment = match ? match[1] : '';
-            }
+            }   
             return this.clearSlashes(fragment)
         }
 
@@ -304,9 +325,9 @@ class apiSettings {
                     self.check(current);
                 }
             }
-            // clearInterval(this.interval);
-            // this.interval = setInterval(fn, 50);
-            // return this;
+            clearInterval(this.interval)
+            this.interval = setInterval(fn, 500)
+            return this
         }
 
         navigate(path){
@@ -352,63 +373,26 @@ class apiSettings {
         return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
     }
 
-    const r = new Router()
-    r.add(/products\/(.*)\/edit\/(.*)/, function() {
-        console.log('products', arguments);
-    }).check('/products/12/edit/22')
-    /*
-<%if(this.showSkills) {%>' +
-    '<%for(var index in this.skills) {%>' + 
-    '<a href="#"><%this.skills[index]%></a>' +
-    '<%}%>' +
-'<%} else {%>' +
-    '<p>none</p>' +
-'<%}%>';
-    */
-   
-    // let testhtml = '<%if (this.name) {%>' +
-    // '<%for(var index in this.types) {%>' + 
-    // '<a href="#"><%index%></a>' +
-    // '<%}%>' +
-    // '<%} else {%>' +
-    //     '<p>none</p>' +
-    // '<%}%>';
-    // const t = new TemplateEngineObj()
-    // t.constructTemplate(testhtml,
-    //     {name: "Alex"})
-    // console.log(TemplateEngine(testhtml, {
-    // name: "Alex",
-    // profile: { age: 22 },
-    // types: [1,2,3,4,5,6]
-    // }))
-    // var template = '<p>Hello, my name is <%name%>. I\'m <%age%> years old.</p>';
-    // console.log(TemplateEngine(template, {
-    // name: "Krasimir",
-    // age: 29
-
-    /*
-    var TemplateEngine = function(html, options) {
-    var re = /<%([^%>]+)?%>/g, reExp = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g, code = 'var r=[];\n', cursor = 0, match;
-    var add = function(line, js) {
-        js? (code += line.match(reExp) ? line + '\n' : 'r.push(' + line + ');\n') :
-            (code += line != '' ? 'r.push("' + line.replace(/"/g, '\\"') + '");\n' : '');
-        return add;
-    }
-    while(match = re.exec(html)) {
-        add(html.slice(cursor, match.index))(match[1], true);
-        cursor = match.index + match[0].length;
-    }
-    add(html.substr(cursor, html.length - cursor));
-    code += 'return r.join("");';
-    return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
-}
-
-
-    */
 
     // Maak het app object pas aan als alle domcontent geladen is, zodat we de <section>'s kunnen zien.
     window.addEventListener("DOMContentLoaded", function() {
         const app = new App()
-        const request = new Request()
+        const m = new Request()
+        m.methode()
+
+        const r = new Router()
+        r.config({ mode: 'hash'});
+        r.add(/products\/(.*)\/edit\/(.*)/, function() {
+            console.log('products', arguments);
+        }).check('/products/12/edit/22')
+        let rijksmuseum = new RijksmuseumListRequest()
+        r.add(/rijksmuseum/, function() {
+            rijksmuseum.getList('collection')
+        }).listen()
+
+        r.add(/rijksmuseum\/(.*)\//), function() {
+            rijksmuseum.send('collection/' + arguments[0])
+        }
+
     })
 }
