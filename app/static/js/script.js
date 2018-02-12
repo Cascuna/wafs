@@ -138,10 +138,12 @@ class apiSettings {
         }
 
         buildTemplate(objs){
+            this.templateengine = new TemplateEngineObj()
+            this.objs = objs
+            let result = this.templateengine.render(
+                "<%for(obj of this.objs) {%> <%obj.title%> <%}%>", {'objs': this.objs})
+            console.log(result)
             let listview = document.getElementById("rijksmuseum-listview")
-            for(const obj of objs){
-                console.log(obj['title'])
-            }
         }
 
         failure(request){
@@ -197,21 +199,13 @@ class apiSettings {
             this.code += 'changes.push("' + line.replace(/"/g, '\\"') + '");\n';
         }
 
-        constructTemplate(html, context){
+        render(html, context){
             this.code = ['var changes=[];\n']
             let match 
              // Cursor om onze positie in de HTML te bepalen
             let cursor = 0
             while(match = this.dynamicBlockRegex.exec(html)) {
-                /* 
-                match result = 
-                0: "{{name}}"  ​
-                1: "name"
-                // Index is de index van de geselecteerde html
-                index: 21
-                input: "<p>Hello, my name is {{name}}. I'm {{age}} years old.</p>"
-                length: 2
-                */
+        
                 console.log(match)
                 // Add the HTML section
                 this.add(html.slice(cursor, match.index))
@@ -229,6 +223,107 @@ class apiSettings {
             return new Function(this.code.replace(/[\r\t\n]/g, '')).apply(context);
         }
     }
+
+    let routerinstance;
+    class Router {
+        constructor(){
+            if(!routerinstance){
+                routerinstance = this
+            } else{
+                return routerinstance
+            }
+            this.routes = []
+            this.mode = null
+            this.root = '/'
+
+        }
+
+        config(options) {
+            this.mode = options && options.mode && options.mode == 'history' 
+                        && !!(history.pushState) ? 'history' : 'hash';
+            this.root = options && options.root ? '/' + this.clearSlashes(options.root) + '/' : '/';
+            return this;
+        }
+        
+
+        getFragment(){
+            let fragment = '';
+            if(this.mode === 'history') {
+                // Delete alle get params
+                // We verwijderen hier de slashes zodat de invoer van urls minder specifiek is
+                fragment = this.clearSlashes(decodeURI(location.pathname + location.search))
+                fragment = fragment.replace(/\?(.*)$/, '')
+                fragment = this.root != '/' ? fragment.replace(this.root, '') : fragment;
+            }else {
+                var match = window.location.href.match(/#(.*)$/);
+                fragment = match ? match[1] : '';
+            }
+            return this.clearSlashes(fragment)
+        }
+
+        add(re, handler, name=''){
+            // Voeg een route adhv een reguliere expressie & functie "handler"toe
+            if(typeof re == 'function'){
+                handler = re
+                re = ''
+            }
+            this.routes.push({'re': re, 'handler': handler})
+            return this
+        }
+
+        remove(re){}
+
+        flush(){
+            this.routes = [];
+            this.mode = null;
+            this.root = '/';
+            return this;
+        }
+
+        check(fragment){
+            // Waar we naartoe willen, of waar we nu zijn
+           fragment = fragment || this.getFragment() 
+           for(let route of this.routes){
+               let match = fragment.match(route.re)
+               if(match) {
+                   match.shift()
+                   route.handler.apply({}, match)
+                   console.log(match)
+                   return this
+               }
+           }
+           return this
+        }
+
+        listen(){
+            let self = this;
+            let current = self.getFragment();
+            var fn = function(){
+                if(current !== self.getFragment()){
+                    current = self.getFragment();
+                    self.check(current);
+                }
+            }
+            // clearInterval(this.interval);
+            // this.interval = setInterval(fn, 50);
+            // return this;
+        }
+
+        navigate(path){
+            path = path ? path : '';
+            if(this.mode === 'history') {
+                history.pushState(null, null, this.root + this.clearSlashes(path));
+            } else {        
+                window.location.href = window.location.href.replace(/#(.*)$/, '') + '#' + path;
+            }
+            return this;
+        }
+
+        clearSlashes(path){
+            return path.toString().replace(/\/$/, '').replace(/^\//, '')
+        }
+    }
+
     // let instance = null;
     const TemplateEngine = function(html, options){
        
@@ -253,9 +348,14 @@ class apiSettings {
         add(html.substr(cursor, html.length - cursor));
         code += 'return changes.join("");';
         console.log(code)
+        // Apply roept de functie aan met de scope & parameters gegeven
         return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
     }
 
+    const r = new Router()
+    r.add(/products\/(.*)\/edit\/(.*)/, function() {
+        console.log('products', arguments);
+    }).check('/products/12/edit/22')
     /*
 <%if(this.showSkills) {%>' +
     '<%for(var index in this.skills) {%>' + 
@@ -266,21 +366,21 @@ class apiSettings {
 '<%}%>';
     */
    
-    let testhtml = '<%if (this.name) {%>' +
-    '<%for(var index in this.types) {%>' + 
-    '<a href="#"><%index%></a>' +
-    '<%}%>' +
-    '<%} else {%>' +
-        '<p>none</p>' +
-    '<%}%>';
-    const t = new TemplateEngineObj()
-    t.constructTemplate(testhtml,
-        {name: "Alex"})
-    console.log(TemplateEngine(testhtml, {
-    name: "Alex",
-    profile: { age: 22 },
-    types: [1,2,3,4,5,6]
-    }))
+    // let testhtml = '<%if (this.name) {%>' +
+    // '<%for(var index in this.types) {%>' + 
+    // '<a href="#"><%index%></a>' +
+    // '<%}%>' +
+    // '<%} else {%>' +
+    //     '<p>none</p>' +
+    // '<%}%>';
+    // const t = new TemplateEngineObj()
+    // t.constructTemplate(testhtml,
+    //     {name: "Alex"})
+    // console.log(TemplateEngine(testhtml, {
+    // name: "Alex",
+    // profile: { age: 22 },
+    // types: [1,2,3,4,5,6]
+    // }))
     // var template = '<p>Hello, my name is <%name%>. I\'m <%age%> years old.</p>';
     // console.log(TemplateEngine(template, {
     // name: "Krasimir",
