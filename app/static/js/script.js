@@ -41,6 +41,7 @@
         toggle(hash){
             console.log(hash)
             for(let section of this.sections){
+                hash = hash.split("/")[0]
                 if(section.id != hash){
                     document.getElementById(section.id).classList.add("hidden")
                 }
@@ -142,7 +143,7 @@
 
         success(responseText){
             console.log(responseText)
-            let response = JSON.parse(responseText)
+            let response = responseText
             console.log('succ')
             return responseText
         }
@@ -175,9 +176,11 @@
         success(request){
             console.log('override worked')
             this.templateengine = new TemplateEngineObj()
-            jsone = json.parse(request.responseText)
+            let jsone = JSON.parse(request.responseText)
+            console.log(jsone)
             let result = this.templateengine.render(
-                "<%for(obj of this.objs) {%> <li> <a href=#rijksmuseum-<%obj.id%>> <%obj.title%> </a> </li> <%}%>", {'objs': jsone['artObjects']})
+                "<%for(obj of this.objs) {%> <li> <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> </li> <%}%>", 
+                    {'objs': jsone['artObjects']})
             let listview = document.getElementById("rijksmuseum-listview")
             listview.insertAdjacentHTML('beforeend', result)
         }
@@ -188,56 +191,79 @@
 
         }
     }
+    
+    class rijksmuseumItemRequest extends Request {
+        success(request){
+            this.templateengine = new TemplateEngineObj()
+            console.log('item')
+            let jsone = JSON.parse(request.responseText)
+            jsone = jsone.artObject
+            console.log(2, jsone)
+            // let nieuwResultaat = this.templateengine.render(
+            //     "<%obj.title%> <br/> <img src=<%obj.webImage.url%>> <br/>", {'obj': jsone})
+            // console.log(3, nieuwResultaat)
+            // let detailview = document.getElementById("rijksmuseum-detailview")
+            // detailview.insertAdjacentHTML('beforeend', nieuwResultaat)
+        }
 
+        getItem(path){
+            this.send(path)
+        }
+    }
 
     class TemplateEngineObj{
+        /*
+        Eigen implementatie van een Template Engine.
+        ondersteunt templatetags <% %> & complexere functies zoals if/for/else etc.
+        */
         constructor(){
-                // Singleton principe
+            // Singleton pattern
             if (!instance) {
                 instance = this;
             }
             else {
                 return instance
             }
-            // Regex om op ALLE (/g) blocks die beginnen met {{ en eindingen met }}
+            // Regex om op ALLE (/g) blocks die beginnen met <% en eindingen met %> te zoeken.
             this.dynamicBlockRegex = /<%([^%>]+)?%>/g
             // Functies welke niet gepusht moeten worden naar de array, maar gewoon uitgevoerd.
             this.escapeables = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g
-            this.code = ['var changes=[];\n']
-            
 
-           
+            /* in deze lijst zit een array zodat we als string "lines.push()" hier aan kunnen appenden
+            en javascript hier direct in kunnen toevoegen, en deze pas op het laatst pas te joinen.
+            Hierdoor kun je bijv dingen doen als
+            for(i of items){
+                <li> <%i.naam%> <li>
+            }
+             */
+            this.code = ['var lines=[];\n']
         }
         add(line, js){
             // Check of de lines tekens bevatten die in escapables voor komen,
-            // zoja, append 'as is', anders push het in de changes array
-            js? this.code += line.match(this.escapeables) ? line + '\n' : 'changes.push(' + line + ');\n' :
-            this.code += 'changes.push("' + line.replace(/"/g, '\\"') + '");\n';
+            // zoja, append 'as is', anders push het in de lines array
+            js? this.code += line.match(this.escapeables) ? line + '\n' : 'lines.push(' + line + ');\n' :
+            this.code += 'lines.push("' + line.replace(/"/g, '\\"') + '");\n';
         }
 
         render(html, context){
-            // het concateneren van de strings zou voor errors zorgen,
-            // dus gebruik ik een array waar ik alles naar schrijf, en de waarde vervolgens join
-            // Ik zet deze array in code, omdat dit de hele representatie van de code is, we beginnen met
-            // de array declaratie
-            this.code = ['var changes=[];\n']
+            console.log(1, context)
+            this.code = ['var lines=[];\n']
+            
+            // Gevonden <% %> block
             let match 
              // Cursor om onze positie in de HTML te bepalen
             let cursor = 0
             while(match = this.dynamicBlockRegex.exec(html)) {
-        
-                console.log(match)
-                // Add the HTML section
+                // Hier gebruik ik html.slice met ded cursor & match index zodat niet elke keer de hele html
+                // toegevoegd wordt
                 this.add(html.slice(cursor, match.index))
-                // replace
                 this.add(match[1], true)
                 cursor = match.index + match[0].length;
-                // html = html.replace(match[0], options[match[1]])
-                console.log(html)
             }
+            // Voeg de resterende HTML toe
             this.add(html.substr(cursor, html.length - cursor));
-            this.code += 'return changes.join("");';
-            console.log(this.code)
+            this.code += 'return lines.join("");';
+            
             // We gebruiken hier .apply zodat de scope van het script automatisch geset wordt, en
             // we dus this.name etc kunneng ebruiken. Op deze manier hebben we geen params nodig.
             return new Function(this.code.replace(/[\r\t\n]/g, '')).apply(context);
@@ -276,7 +302,7 @@
                 fragment = this.root != '/' ? fragment.replace(this.root, '') : fragment;
             }else {
                 var match = window.location.href.match(/#(.*)$/);
-                console.log(match)
+                // console.log(match)
                 fragment = match ? match[1] : '';
             }   
             return this.clearSlashes(fragment)
@@ -307,7 +333,9 @@
            for(let route of this.routes){
                let match = fragment.match(route.re)
                if(match) {
+                   console.log(match)
                    match.shift()
+                   console.log(match)
                    route.handler.apply({}, match)
                    console.log(match)
                    return this
@@ -352,12 +380,12 @@
         let escapeables = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g
 
         
-        let code = ['var changes=[];\n']
+        let code = ['var lines=[];\n']
         let cursor = 0
         
         var add = function(line, js){
-            js? code += line.match(escapeables) ? line + '\n' : 'changes.push(' + line + ');\n' :
-            code += 'changes.push("' + line.replace(/"/g, '\\"') + '");\n';
+            js? code += line.match(escapeables) ? line + '\n' : 'lines.push(' + line + ');\n' :
+            code += 'lines.push("' + line.replace(/"/g, '\\"') + '");\n';
         }
 
         while(match = dynamicBlockRegex.exec(html)) {
@@ -367,7 +395,7 @@
             console.log(html)
         }
         add(html.substr(cursor, html.length - cursor));
-        code += 'return changes.join("");';
+        code += 'return lines.join("");';
         console.log(code)
         // Apply roept de functie aan met de scope & parameters gegeven
         return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
@@ -385,14 +413,16 @@
         r.add(/products\/(.*)\/edit\/(.*)/, function() {
             console.log('products', arguments);
         }).check('/products/12/edit/22')
+        r.add(/rijksmuseum\/(.*)/, function() {
+            let rijskmuseumitem = new rijksmuseumItemRequest()
+            rijskmuseumitem.send('collection/' + arguments[0])
+        })
         let rijksmuseum = new RijksmuseumListRequest()
         r.add(/rijksmuseum/, function() {
             rijksmuseum.getList('collection')
         }).listen()
 
-        r.add(/rijksmuseum\/(.*)\//), function() {
-            rijksmuseum.send('collection/' + arguments[0])
-        }
+  
 
     })
 }
