@@ -20,6 +20,10 @@ nav {
 
 }
 
+.basisimg {
+    width: 500px;
+    height: 500px;
+}
 
 nav ul {
     list-style: none;  

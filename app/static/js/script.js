@@ -114,15 +114,6 @@
             this.request = new XMLHttpRequest()
         }
 
-        methode(){
-            this.send('collection')
-            // while(this.request.readyState != 4){
-            //     console.log(this.request.readyState)
-                
-            // }
-            console.log(this.request.status)
-        }
-
         send(path, type='GET'){
             console.log('fired')
             let absolute_url = this.buildAbsoluteUrl(path, this.settings.format)
@@ -191,26 +182,6 @@
 
         }
     }
-    
-    class rijksmuseumItemRequest extends Request {
-        success(request){
-            this.templateengine = new TemplateEngineObj()
-            console.log('item')
-            let jsone = JSON.parse(request.responseText)
-            jsone = jsone.artObject
-            console.log(2, jsone)
-            // let nieuwResultaat = this.templateengine.render(
-            //     "<%obj.title%> <br/> <img src=<%obj.webImage.url%>> <br/>", {'obj': jsone})
-            // console.log(3, nieuwResultaat)
-            // let detailview = document.getElementById("rijksmuseum-detailview")
-            // detailview.insertAdjacentHTML('beforeend', nieuwResultaat)
-        }
-
-        getItem(path){
-            this.send(path)
-        }
-    }
-
     class TemplateEngineObj{
         /*
         Eigen implementatie van een Template Engine.
@@ -260,9 +231,12 @@
                 this.add(match[1], true)
                 cursor = match.index + match[0].length;
             }
+            console.log(7, context)
             // Voeg de resterende HTML toe
             this.add(html.substr(cursor, html.length - cursor));
+            console.log(4, this.code)
             this.code += 'return lines.join("");';
+            console.log(5, this.code)
             
             // We gebruiken hier .apply zodat de scope van het script automatisch geset wordt, en
             // we dus this.name etc kunneng ebruiken. Op deze manier hebben we geen params nodig.
@@ -270,6 +244,26 @@
         }
     }
 
+    class rijksmuseumItemRequest extends Request {
+        success(request){
+            this.objecto = new TemplateEngineObj()
+            console.log('item')
+            let itemjson = JSON.parse(request.responseText)
+            itemjson = itemjson.artObject
+            console.log(2, itemjson)
+            let nieuwResultaat = this.objecto.render(
+                "<%this.obj.title%> <br/> <img class='basisimg' src=<%this.obj.webImage.url%>> <br/> <%this.obj.description%> <br/> <%this.obj.dating.sortingDate%>", {'obj': itemjson})
+            console.log(3, nieuwResultaat)
+            let detailview = document.getElementById("rijksmuseum-detailview")
+            detailview.insertAdjacentHTML('beforeend', nieuwResultaat)
+        }
+
+        getItem(path){
+            this.send(path)
+        }
+    }
+
+  
     let routerinstance;
     class Router {
         constructor(){
@@ -333,11 +327,8 @@
            for(let route of this.routes){
                let match = fragment.match(route.re)
                if(match) {
-                   console.log(match)
                    match.shift()
-                   console.log(match)
                    route.handler.apply({}, match)
-                   console.log(match)
                    return this
                }
            }
@@ -405,20 +396,15 @@
     // Maak het app object pas aan als alle domcontent geladen is, zodat we de <section>'s kunnen zien.
     window.addEventListener("DOMContentLoaded", function() {
         const app = new App()
-        const m = new Request()
-        m.methode()
-
         const r = new Router()
         r.config({ mode: 'hash'});
-        r.add(/products\/(.*)\/edit\/(.*)/, function() {
-            console.log('products', arguments);
-        }).check('/products/12/edit/22')
         r.add(/rijksmuseum\/(.*)/, function() {
             let rijskmuseumitem = new rijksmuseumItemRequest()
             rijskmuseumitem.send('collection/' + arguments[0])
         })
-        let rijksmuseum = new RijksmuseumListRequest()
+       
         r.add(/rijksmuseum/, function() {
+            let rijksmuseum = new RijksmuseumListRequest()
             rijksmuseum.getList('collection')
         }).listen()
 
