@@ -104,6 +104,7 @@
             this.settings = new apiSettings()
             this.request = new XMLHttpRequest()
             this.configureObject()
+            this.templateEngine = new TemplateEngineObj()
         }
 
         configureObject(){
@@ -111,16 +112,16 @@
         }
 
         send(path, type='GET'){
-            let cacheditems = this.retrieveCachedItems(this.key)
-            console.log(cacheditems)
-            if(cacheditems === false){
+            let itemsFromCache = this.retrieveCachedItems(this.key)
+            console.log(itemsFromCache)
+            if(itemsFromCache === false){
                 console.log(87, 'maakt een query')
                 let absolute_url = this.buildAbsoluteUrl(path, this.settings.format)
                 this.request.open('GET', absolute_url, true)
                 this._send()
             }
             else {
-                this.success(cacheditems)
+                this.success(itemsFromCache)
             }
         }
 
@@ -146,8 +147,10 @@
             self.request.onload = function() {
                 if (self.request.status >= 200 && self.request.status <= 400) {
                     let parsedJson = JSON.parse(self.request.responseText)
-                    self.cacheRequest(self.key, parsedJson)
-                    self.success(parsedJson)
+                    let cleanedResponse = self.cleanResponse(parsedJson)
+                    let cacheResponse = self.cacheRequest(self.key, cleanedResponse)
+                    console.log(cacheResponse)
+                    self.success(cacheResponse)
                 } else {
                     self.failure(self.request)
                 }
@@ -158,6 +161,7 @@
             let object = {value: value, timestamp: new Date().getTime()}
             localStorage.setItem(key, JSON.stringify(object))
             console.log(JSON.parse(localStorage.getItem(key)))
+            return JSON.parse(localStorage.getItem(key)).value
         }
         
         compareTime(cacheDate, now){
@@ -174,10 +178,13 @@
                 return this.compareTime(dateString, now) ? object.value : false 
             }
             catch {
-                console.log(key)
                 return false 
             }
             
+        }
+
+        cleanResponse(response){
+            return response 
         }
 
         _send(){
@@ -189,26 +196,23 @@
         configureObject(){
             this.key = 'rijksmusemlist'
         }
-        success(request){
-            this.templatEengine = new TemplateEngineObj()
-            let parsedJson = request
-            console.log(parsedJson)
-            let result = this.templatEengine.render(
+        success(response){
+            let result = this.templateEngine.render(
                 "<%for(obj of this.objs) {%> <li> <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> </li> <%}%>", 
-                    {'objs': parsedJson['artObjects']})
+                    {'objs': response})
             let listview = document.getElementById("rijksmuseum-listview")
+            
             listview.insertAdjacentHTML('beforeend', result)
         }
 
-        cleanRequest(){
-            
-
+        cleanResponse(response){
+            let rawArtObjects = Object.values(response.artObjects)
+            let artObjectsWithImage = rawArtObjects.filter(obj => obj.hasImage == true)
+            return artObjectsWithImage
         }
 
         getList(path){
             this.send(path)
-            // console.log(this.request.status)
-
         }
     }
     class rijksmuseumItemRequest extends Request {
@@ -216,15 +220,13 @@
             this.key = key
         }
         success(request){
-            this.objecto = new TemplateEngineObj()
-            console.log(this.key)
-            let itemjson = request
-            itemjson = itemjson.artObject
-            console.log(2, itemjson)
-            let nieuwResultaat = this.objecto.render(
-                "<%this.obj.title%> <br/> <img class='basisimg' src=<%this.obj.webImage.url%>> <br/> <%this.obj.description%> <br/> <%this.obj.dating.sortingDate%>", {'obj': itemjson})
-            console.log(3, nieuwResultaat)
+            let jsonResponse = request
+            jsonResponse = jsonResponse.artObject
+            let nieuwResultaat = this.templateEngine.render(
+                "<%this.obj.title%> <br/> <img class='basisimg' src=<%this.obj.webImage.url%>> <br/> <%this.obj.description%> <br/> <%this.obj.dating.sortingDate%>", {'obj': jsonResponse})
+            
             let detailview = document.getElementById("rijksmuseum-detailview")
+            detailview.innerHTML = "";
             detailview.insertAdjacentHTML('beforeend', nieuwResultaat)
         }
 
@@ -282,12 +284,10 @@
                 this.add(match[1], true)
                 cursor = match.index + match[0].length;
             }
-            console.log(7, context)
+
             // Voeg de resterende HTML toe
             this.add(html.substr(cursor, html.length - cursor));
-            console.log(4, this.code)
             this.code += 'return lines.join("");';
-            console.log(5, this.code)
             
             // We gebruiken hier .apply zodat de scope van het script automatisch geset wordt, en
             // we dus this.name etc kunneng ebruiken. Op deze manier hebben we geen params nodig.
