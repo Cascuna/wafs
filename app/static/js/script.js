@@ -1,7 +1,7 @@
 /* Code is geschreven in ES6, blocks geven hetzelfde effect als het iffes pattern
    Aldus, de klasses zijn niet direct via het window object te vinden.
 */
-
+// Forceer strict, in het code block heeft strict geen effect 
 'use strict'
 {
 
@@ -22,6 +22,7 @@
         }
 
         defineAppPaths(router){
+            // Stel de paden in waar naartoe geroute kan worden
             try { 
                 router.add(/rijksmuseum\/(.*)/, function() {
                     let rijskmuseumitem = new rijksmuseumItemRequest()
@@ -38,12 +39,12 @@
             }
         }
     }
+    
     /* App.prototype.init, op deze manier bind je de functie naar het prototype
      en alleen naar de prototype. 
      Op de normale manier wordt het gebonden op de instantie van het object,
      wat als gevolg heeft dat elke insantie een eigen functie heeft.
      In plain JS is dit het standaard binden van de functie naar het "object" */
-
 
     class Sections{
         constructor() {
@@ -113,9 +114,8 @@
 
         send(path, type='GET'){
             let itemsFromCache = this.retrieveCachedItems(this.key)
-            console.log(itemsFromCache)
             if(itemsFromCache === false){
-                console.log(87, 'maakt een query')
+                console.log('Fetching data from API')
                 let absolute_url = this.buildAbsoluteUrl(path, this.settings.format)
                 this.request.open('GET', absolute_url, true)
                 this._send()
@@ -127,16 +127,14 @@
 
         buildAbsoluteUrl(path){
             let _baseUrl = this.settings.api + path + '?key=' + this.settings.key
-            let absolute_url = _baseUrl
+            let absoluteUrl = _baseUrl
             for(let arg of arguments){
-                absolute_url += '&' + arg
+                absoluteUrl += '&' + arg
             }
-            return absolute_url
+            return absoluteUrl
         }
 
-        success(responseText){
-            return responseText
-        }
+        success(responseText){return responseText}
 
         failure(request){
             throw('er is een error voorgekomen in het request')
@@ -149,7 +147,6 @@
                     let parsedJson = JSON.parse(self.request.responseText)
                     let cleanedResponse = self.cleanResponse(parsedJson)
                     let cacheResponse = self.cacheRequest(self.key, cleanedResponse)
-                    console.log(cacheResponse)
                     self.success(cacheResponse)
                 } else {
                     self.failure(self.request)
@@ -158,34 +155,30 @@
         }
 
         cacheRequest(key, value){
-            let object = {value: value, timestamp: new Date().getTime()}
-            localStorage.setItem(key, JSON.stringify(object))
-            console.log(JSON.parse(localStorage.getItem(key)))
+            let entryToCache = {value: value, timestamp: new Date().getTime()}
+            localStorage.setItem(key, JSON.stringify(entryToCache))
             return JSON.parse(localStorage.getItem(key)).value
         }
         
         compareTime(cacheDate, now){
-            let day = 86000000 // Day in ms 
+            let day = 1 //86000000 // Day in ms 
             return now - cacheDate <= day ? true : false  
         }
 
         retrieveCachedItems(key){
             try {
                 let object = JSON.parse(localStorage.getItem(key))
-                let dateString = object.timestamp
-                let now = new Date().getTime().toString()
-                console.log(1969, this.compareTime(dateString, now))
-                return this.compareTime(dateString, now) ? object.value : false 
+                let cacheTimestamp = object.timestamp
+                let nowTimestamp = new Date().getTime().toString()
+                console.log('Cache entry is valid', this.compareTime(cacheTimestamp, nowTimestamp))
+                return this.compareTime(cacheTimestamp, nowTimestamp) ? object.value : false 
             }
             catch {
                 return false 
             }
-            
         }
 
-        cleanResponse(response){
-            return response 
-        }
+        cleanResponse(response){return response}
 
         _send(){
             this.onload()
@@ -201,7 +194,7 @@
                 "<%for(obj of this.objs) {%> <li> <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> </li> <%}%>", 
                     {'objs': response})
             let listview = document.getElementById("rijksmuseum-listview")
-            
+            listview.innerHTML = "";
             listview.insertAdjacentHTML('beforeend', result)
         }
 
@@ -222,12 +215,12 @@
         success(request){
             let jsonResponse = request
             jsonResponse = jsonResponse.artObject
-            let nieuwResultaat = this.templateEngine.render(
+            let detailViewItem = this.templateEngine.render(
                 "<%this.obj.title%> <br/> <img class='basisimg' src=<%this.obj.webImage.url%>> <br/> <%this.obj.description%> <br/> <%this.obj.dating.sortingDate%>", {'obj': jsonResponse})
             
             let detailview = document.getElementById("rijksmuseum-detailview")
             detailview.innerHTML = "";
-            detailview.insertAdjacentHTML('beforeend', nieuwResultaat)
+            detailview.insertAdjacentHTML('beforeend', detailViewItem)
         }
 
         getItem(path, iteminfo){
@@ -270,7 +263,6 @@
         }
 
         render(html, context){
-            console.log(1, context)
             this.code = ['var lines=[];\n']
             
             // Gevonden <% %> block
@@ -306,6 +298,7 @@
             this.routes = []
             this.mode = null
             this.root = '/'
+            // Eigenlijk alleen in hash mode
             this.hookHashListener()
         }
 
@@ -358,6 +351,7 @@
         remove(re){}
 
         flush(){
+            // We willen misschien de router flushen on runtime ?
             this.routes = [];
             this.mode = null;
             this.root = '/';
@@ -379,6 +373,7 @@
         }
 
         listen(){
+            /* Start de router, vanaf dit punt zal hij in haken op route verandering*/
             let self = this;
             let current = self.getFragment();
             var fn = function(){
@@ -387,6 +382,7 @@
                     self.check(current);
                 }
             }
+            // Fall back voor hash
             clearInterval(this.interval)
             this.interval = setInterval(fn, 500)
             return this
@@ -403,52 +399,10 @@
         }
 
         clearSlashes(path){
+            // Functie om een pad te cleanen
             return path.toString().replace(/\/$/, '').replace(/^\//, '')
         }
     }
-
-    // let instance = null;
-    const TemplateEngine = function(html, options){
-       
-        let dynamicBlockRegex = /<%([^%>]+)?%>/g, match
-        let escapeables = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g
-        
-        let preparedCode = ['var lines=[];\n']
-        let cursor = 0
-        
-        var add = function(line, js){
-            /* 
-            Functie welke de code toevoegd aan een variabele met een array hierin.
-            Het idee hierachter is dat we alle instructies in de variabele zetten, en deze vervolgens
-            "joinen", waardoor het wordt uitgevoerd.
-            Door een binnen array te gebruiken kunnen we bijvoorbeeld het volgende bereiken
-            1. for(num in range(10)){
-            2. lines.append(num)
-            3. }
-            Wat, als het gejoined wordt, de volgende output geeft:
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10 
-            */
-            /* Voor javascript, kijk of er een conditional in zit (for/else/if), push dan de js "rauw" in de code */
-            
-            js? preparedCode += line.match(escapeables) ? line + '\n' : 'lines.push(' + line + ');\n':
-            /* Push de html als (lines.push in de variabelen) */
-            preparedCode += 'lines.push("' + line.replace(/"/g, '\\"') + '");\n';
-        }
-
-        while(match = dynamicBlockRegex.exec(html)) {
-            add(html.slice(cursor, match.index))
-            add(match[1], true)
-            // positie waar we op dit moment in de HTML zitten, zodat we geen dubbele code in preparedCode gaan zetten 
-            cursor = match.index + match[0].length;
-        }
-        // Voeg de rest van HTML toe
-        add(html.substr(cursor, html.length - cursor));
-        // run de code in preparedCode, magic happens here
-        preparedCode += 'return lines.join("");';
-        // Apply roept de functie aan met de scope & parameters gegeven
-        return new Function(preparedCode.replace(/[\r\t\n]/g, '')).apply(options);
-    }
-
     // Maak het app object pas aan als alle domcontent geladen is, zodat we de <section>'s kunnen zien.
     window.addEventListener("DOMContentLoaded", function() {
         const app = new App()
