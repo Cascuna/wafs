@@ -25,7 +25,7 @@
             try { 
                 router.add(/rijksmuseum\/(.*)/, function() {
                     let rijskmuseumitem = new rijksmuseumItemRequest()
-                    rijskmuseumitem.send('collection/' + arguments[0])
+                    rijskmuseumitem.getItem('collection/', arguments)
                 })
                 router.add(/rijksmuseum/, function() {
                     let rijksmuseum = new RijksmuseumListRequest()
@@ -107,7 +107,7 @@
         }
 
         configureObject(){
-            this.key = 'rijksmusemlist'
+            this.key = 'default'
         }
 
         send(path, type='GET'){
@@ -145,9 +145,9 @@
             self = this
             self.request.onload = function() {
                 if (self.request.status >= 200 && self.request.status <= 400) {
-                    let j = JSON.parse(self.request.responseText)
-                    console.log('request vanuit onload')
-                    self.success(j)
+                    let parsedJson = JSON.parse(self.request.responseText)
+                    self.cacheRequest(self.key, parsedJson)
+                    self.success(parsedJson)
                 } else {
                     self.failure(self.request)
                 }
@@ -162,11 +162,7 @@
         
         compareTime(cacheDate, now){
             let day = 86000000 // Day in ms 
-            if(now - cacheDate >= day){
-                console.log(now - cacheDate)
-                return false 
-            }
-            return true 
+            return now - cacheDate <= day ? true : false  
         }
 
         retrieveCachedItems(key){
@@ -190,13 +186,13 @@
         }
     }
     class RijksmuseumListRequest extends Request {
-
-        success(request){
+        configureObject(){
             this.key = 'rijksmusemlist'
+        }
+        success(request){
             this.templatEengine = new TemplateEngineObj()
             let parsedJson = request
             console.log(parsedJson)
-            this.cacheRequest(this.key, parsedJson)
             let result = this.templatEengine.render(
                 "<%for(obj of this.objs) {%> <li> <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> </li> <%}%>", 
                     {'objs': parsedJson['artObjects']})
@@ -216,10 +212,13 @@
         }
     }
     class rijksmuseumItemRequest extends Request {
+        configureObject(key){
+            this.key = key
+        }
         success(request){
             this.objecto = new TemplateEngineObj()
-            console.log('item')
-            let itemjson = JSON.parse(request.responseText)
+            console.log(this.key)
+            let itemjson = request
             itemjson = itemjson.artObject
             console.log(2, itemjson)
             let nieuwResultaat = this.objecto.render(
@@ -229,8 +228,9 @@
             detailview.insertAdjacentHTML('beforeend', nieuwResultaat)
         }
 
-        getItem(path){
-            this.send(path)
+        getItem(path, iteminfo){
+            this.configureObject(iteminfo[0])
+            this.send(path + iteminfo[0])
         }
     }
     class TemplateEngineObj{
