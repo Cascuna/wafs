@@ -16,12 +16,26 @@
     */
     class App{
         constructor() {
-            this.routes = new Routes()
-            this.init()
+            this.router = new Router()
+            this.router.config({ mode: 'hash'})
+            this.defineAppPaths(this.router)
         }
 
-        init(){
-            console.log("Ik ben geinitaliseerd!")
+        defineAppPaths(router){
+            try { 
+                router.add(/rijksmuseum\/(.*)/, function() {
+                    let rijskmuseumitem = new rijksmuseumItemRequest()
+                    rijskmuseumitem.send('collection/' + arguments[0])
+                })
+                router.add(/rijksmuseum/, function() {
+                    let rijksmuseum = new RijksmuseumListRequest()
+                    rijksmuseum.getList('collection')
+                })
+                router.listen()
+            }
+            catch {
+                throw "There has been aan initialisation issue"
+            }
         }
     }
     /* App.prototype.init, op deze manier bind je de functie naar het prototype
@@ -47,9 +61,7 @@
                 }
                 else{
                     document.getElementById(section.id).classList.remove("hidden")
-            }
-                    
-                 
+                }       
             }
         }
 
@@ -71,32 +83,12 @@
         }
 
         fillNavBar(){
-            /* Vult de navbar met <li> elementen voor alle <section>'s in de HTML.
-            */
+            /* Vult de navbar met <li> elementen voor alle <section>'s in de HTML. */
             for(let section of this.sections){
                 this.createNavItem(section.id)
             }
         }
-
     }
-
-    class Routes    {
-        constructor() {
-            this.init()
-        }
-        init(){
-            this.sections = new Sections()
-            console.log(this.sections)
-            const routesthis = this;
-            // De call naar de toggle functie is in een functie gewrapt, zodat de
-            // scope die meegeven wordt niet 'hashchanged' is. 
-            window.addEventListener("hashchange", function(event){
-                console.log(routesthis)
-                routesthis.sections.toggle(location.hash.replace(/^#/, ""))
-            });
-        }
-    }
-
 
     // TODO: Verplaats naar modules 
     class apiSettings {
@@ -107,19 +99,29 @@
             this.format = 'json'
         }
     }
-
     class Request {
         constructor(type='GET') {
             this.settings = new apiSettings()
             this.request = new XMLHttpRequest()
+            this.configureObject()
+        }
+
+        configureObject(){
+            this.key = 'rijksmusemlist'
         }
 
         send(path, type='GET'){
-            console.log('fired')
-            let absolute_url = this.buildAbsoluteUrl(path, this.settings.format)
-            this.request.open('GET', absolute_url, true)
-            this._send()
-           
+            let cacheditems = this.retrieveCachedItems(this.key)
+            console.log(cacheditems)
+            if(cacheditems === false){
+                console.log(87, 'maakt een query')
+                let absolute_url = this.buildAbsoluteUrl(path, this.settings.format)
+                this.request.open('GET', absolute_url, true)
+                this._send()
+            }
+            else {
+                this.success(cacheditems)
+            }
         }
 
         buildAbsoluteUrl(path){
@@ -131,30 +133,55 @@
             return absolute_url
         }
 
-
         success(responseText){
-            console.log(responseText)
-            let response = responseText
-            console.log('succ')
             return responseText
         }
 
         failure(request){
-            console.log(request.status)
-            console.log(request.responseText)
-            console.log('fail')
-            return request
+            throw('er is een error voorgekomen in het request')
         }
 
         onload(){
             self = this
             self.request.onload = function() {
                 if (self.request.status >= 200 && self.request.status <= 400) {
-                    self.success(self.request)
+                    let j = JSON.parse(self.request.responseText)
+                    console.log('request vanuit onload')
+                    self.success(j)
                 } else {
-                    // self.failure(self.request)
+                    self.failure(self.request)
                 }
             }
+        }
+
+        cacheRequest(key, value){
+            let object = {value: value, timestamp: new Date().getTime()}
+            localStorage.setItem(key, JSON.stringify(object))
+            console.log(JSON.parse(localStorage.getItem(key)))
+        }
+        
+        compareTime(cacheDate, now){
+            let day = 86000000 // Day in ms 
+            if(now - cacheDate >= day){
+                console.log(now - cacheDate)
+                return false 
+            }
+            return true 
+        }
+
+        retrieveCachedItems(key){
+            try {
+                let object = JSON.parse(localStorage.getItem(key))
+                let dateString = object.timestamp
+                let now = new Date().getTime().toString()
+                console.log(1969, this.compareTime(dateString, now))
+                return this.compareTime(dateString, now) ? object.value : false 
+            }
+            catch {
+                console.log(key)
+                return false 
+            }
+            
         }
 
         _send(){
@@ -162,24 +189,48 @@
             this.request.send()
         }
     }
-
     class RijksmuseumListRequest extends Request {
+
         success(request){
-            console.log('override worked')
-            this.templateengine = new TemplateEngineObj()
-            let jsone = JSON.parse(request.responseText)
-            console.log(jsone)
-            let result = this.templateengine.render(
+            this.key = 'rijksmusemlist'
+            this.templatEengine = new TemplateEngineObj()
+            let parsedJson = request
+            console.log(parsedJson)
+            this.cacheRequest(this.key, parsedJson)
+            let result = this.templatEengine.render(
                 "<%for(obj of this.objs) {%> <li> <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> </li> <%}%>", 
-                    {'objs': jsone['artObjects']})
+                    {'objs': parsedJson['artObjects']})
             let listview = document.getElementById("rijksmuseum-listview")
             listview.insertAdjacentHTML('beforeend', result)
+        }
+
+        cleanRequest(){
+            
+
         }
 
         getList(path){
             this.send(path)
             // console.log(this.request.status)
 
+        }
+    }
+    class rijksmuseumItemRequest extends Request {
+        success(request){
+            this.objecto = new TemplateEngineObj()
+            console.log('item')
+            let itemjson = JSON.parse(request.responseText)
+            itemjson = itemjson.artObject
+            console.log(2, itemjson)
+            let nieuwResultaat = this.objecto.render(
+                "<%this.obj.title%> <br/> <img class='basisimg' src=<%this.obj.webImage.url%>> <br/> <%this.obj.description%> <br/> <%this.obj.dating.sortingDate%>", {'obj': itemjson})
+            console.log(3, nieuwResultaat)
+            let detailview = document.getElementById("rijksmuseum-detailview")
+            detailview.insertAdjacentHTML('beforeend', nieuwResultaat)
+        }
+
+        getItem(path){
+            this.send(path)
         }
     }
     class TemplateEngineObj{
@@ -243,26 +294,6 @@
             return new Function(this.code.replace(/[\r\t\n]/g, '')).apply(context);
         }
     }
-
-    class rijksmuseumItemRequest extends Request {
-        success(request){
-            this.objecto = new TemplateEngineObj()
-            console.log('item')
-            let itemjson = JSON.parse(request.responseText)
-            itemjson = itemjson.artObject
-            console.log(2, itemjson)
-            let nieuwResultaat = this.objecto.render(
-                "<%this.obj.title%> <br/> <img class='basisimg' src=<%this.obj.webImage.url%>> <br/> <%this.obj.description%> <br/> <%this.obj.dating.sortingDate%>", {'obj': itemjson})
-            console.log(3, nieuwResultaat)
-            let detailview = document.getElementById("rijksmuseum-detailview")
-            detailview.insertAdjacentHTML('beforeend', nieuwResultaat)
-        }
-
-        getItem(path){
-            this.send(path)
-        }
-    }
-
   
     let routerinstance;
     class Router {
@@ -275,7 +306,19 @@
             this.routes = []
             this.mode = null
             this.root = '/'
+            this.hookHashListener()
+        }
 
+        hookHashListener(){
+            this.sections = new Sections()
+            console.log(this.sections)
+            const routesthis = this;
+            // De call naar de toggle functie is in een functie gewrapt, zodat de
+            // scope die meegeven wordt niet 'hashchanged' is. 
+            window.addEventListener("hashchange", function(event){
+                console.log(routesthis)
+                routesthis.sections.toggle(location.hash.replace(/^#/, ""))
+            });
         }
 
         config(options) {
@@ -369,46 +412,45 @@
        
         let dynamicBlockRegex = /<%([^%>]+)?%>/g, match
         let escapeables = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g
-
         
-        let code = ['var lines=[];\n']
+        let preparedCode = ['var lines=[];\n']
         let cursor = 0
         
         var add = function(line, js){
-            js? code += line.match(escapeables) ? line + '\n' : 'lines.push(' + line + ');\n' :
-            code += 'lines.push("' + line.replace(/"/g, '\\"') + '");\n';
+            /* 
+            Functie welke de code toevoegd aan een variabele met een array hierin.
+            Het idee hierachter is dat we alle instructies in de variabele zetten, en deze vervolgens
+            "joinen", waardoor het wordt uitgevoerd.
+            Door een binnen array te gebruiken kunnen we bijvoorbeeld het volgende bereiken
+            1. for(num in range(10)){
+            2. lines.append(num)
+            3. }
+            Wat, als het gejoined wordt, de volgende output geeft:
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10 
+            */
+            /* Voor javascript, kijk of er een conditional in zit (for/else/if), push dan de js "rauw" in de code */
+            
+            js? preparedCode += line.match(escapeables) ? line + '\n' : 'lines.push(' + line + ');\n':
+            /* Push de html als (lines.push in de variabelen) */
+            preparedCode += 'lines.push("' + line.replace(/"/g, '\\"') + '");\n';
         }
 
         while(match = dynamicBlockRegex.exec(html)) {
             add(html.slice(cursor, match.index))
             add(match[1], true)
+            // positie waar we op dit moment in de HTML zitten, zodat we geen dubbele code in preparedCode gaan zetten 
             cursor = match.index + match[0].length;
-            console.log(html)
         }
+        // Voeg de rest van HTML toe
         add(html.substr(cursor, html.length - cursor));
-        code += 'return lines.join("");';
-        console.log(code)
+        // run de code in preparedCode, magic happens here
+        preparedCode += 'return lines.join("");';
         // Apply roept de functie aan met de scope & parameters gegeven
-        return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
+        return new Function(preparedCode.replace(/[\r\t\n]/g, '')).apply(options);
     }
-
 
     // Maak het app object pas aan als alle domcontent geladen is, zodat we de <section>'s kunnen zien.
     window.addEventListener("DOMContentLoaded", function() {
         const app = new App()
-        const r = new Router()
-        r.config({ mode: 'hash'});
-        r.add(/rijksmuseum\/(.*)/, function() {
-            let rijskmuseumitem = new rijksmuseumItemRequest()
-            rijskmuseumitem.send('collection/' + arguments[0])
-        })
-       
-        r.add(/rijksmuseum/, function() {
-            let rijksmuseum = new RijksmuseumListRequest()
-            rijksmuseum.getList('collection')
-        }).listen()
-
-  
-
     })
 }
