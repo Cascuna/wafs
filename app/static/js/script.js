@@ -106,23 +106,48 @@
             this.request = new XMLHttpRequest()
             this.configureObject()
             this.templateEngine = new TemplateEngineObj()
+            this.template = this.loadTemplate()
+            
         }
+
+       loadTemplate(absoluteFilePath, done){
+        // https://stackoverflow.com/questions/14220321/how-do-i-return-the-response-from-an-asynchronous-call/16825593#16825593
+        // https://stackoverflow.com/questions/30008114/how-do-i-promisify-native-xhr 
+             let request = new XMLHttpRequest()
+            request.open("GET", absoluteFilePath)
+            request.responseType = 'text'
+            request.onload = function(){
+                console.log(typeof(request.response))
+                done(null, String(request.response))
+            }
+            request.error = function () {
+                done(request.response)
+            }
+            request.send() 
+        }   
+
 
         configureObject(){
             this.key = 'default'
         }
 
         send(path, type='GET'){
-            let itemsFromCache = this.retrieveCachedItems(this.key)
-            if(itemsFromCache === false){
-                console.log('Fetching data from API')
-                let absolute_url = this.buildAbsoluteUrl(path, this.settings.format)
-                this.request.open('GET', absolute_url, true)
-                this._send()
-            }
-            else {
-                this.success(itemsFromCache)
-            }
+            this.loadTemplate('static/templates/listview.html', (err, html) => {
+                console.log(html)
+                this.html = html
+                console.log(this.html)
+                let itemsFromCache = this.retrieveCachedItems(this.key)
+                if(itemsFromCache === false){
+                    console.log('Fetching data from API')
+                    let absolute_url = this.buildAbsoluteUrl(path, this.settings.format)
+                    this.request.open('GET', absolute_url, true)
+                    this._send()
+                }
+                else {
+                    this.success(itemsFromCache)
+                }
+            });
+          
         }
 
         buildAbsoluteUrl(path){
@@ -161,7 +186,7 @@
         }
         
         compareTime(cacheDate, now){
-            let day = 1 //86000000 // Day in ms 
+            let day = 86000000 // Day in ms 
             return now - cacheDate <= day ? true : false  
         }
 
@@ -189,9 +214,11 @@
         configureObject(){
             this.key = 'rijksmusemlist'
         }
-        success(response){
-            let result = this.templateEngine.render(
-                "<%for(obj of this.objs) {%> <li> <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> </li> <%}%>", 
+
+
+        async success(response){
+            console.log(this.html)
+            let result = this.templateEngine.render(this.html,
                     {'objs': response})
             let listview = document.getElementById("rijksmuseum-listview")
             listview.innerHTML = "";
@@ -205,6 +232,7 @@
         }
 
         getList(path){
+            
             this.send(path)
         }
     }
