@@ -1,0 +1,8 @@
+<% implements (test.html) %>
+<h1>Laatste 10 kunst werken van <% this.objs.artists[0].naam %></h1> 
+<% for(obj of this.objs) { %> 
+    <li> 
+        <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> 
+    </li> 
+<% } %>
+

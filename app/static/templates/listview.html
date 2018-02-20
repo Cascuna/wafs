@@ -1,5 +1,13 @@
+
+<h1>Laatste 10 objecten</h1> 
 <% for(obj of this.objs) { %> 
     <li> 
         <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> 
     </li> 
 <% } %>
+<h1>Kies een schilder</h1> 
+<% for(artiest of this.objs.artists) { %>
+    <li>
+        <a href=#rijksmuseum/schilder/<% artiest.url %>> <% artiest.naam %> </a>
+    </li>
+<% } %>    

@@ -79,3 +79,17 @@ section {
 .visible {
     display: block;
 }
+p {
+    margin: 0;
+    float: left;
+}
+p > div[class='error'] {
+    display:flex;
+}
+#errorimage {
+    overflow: auto;
+    vertical-align: middle;
+    float: left;
+    padding-left: 2em;
+    padding-top: 1.4em;
+}
