@@ -2,7 +2,7 @@
     min-width: 30em;
 } */
 html {
-    background-color: #FF6444;
+
 }
 body {
     margin: 0px;
@@ -92,4 +92,26 @@ p > div[class='error'] {
     float: left;
     padding-left: 2em;
     padding-top: 1.4em;
+}
+
+ul {
+    display: grid;
+    grid-template-columns: 2fr 2fr 2fr;
+    list-style: none;
+    grid-gap: 0.5em;
+}
+
+ul>li {
+    background-color: red;
+    color: white;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+}
+ul>li>img {
+    width: 20em;
+    height: 15em;
+    cursor: pointer;
+}
+ul>li>a {
+    color:white;
+    text-decoration: none;
 }

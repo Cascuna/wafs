@@ -291,7 +291,7 @@
         }
         
         compareTime(cacheDate, now){
-            let day = 86000000 // Day in ms 
+            let day = 1 //86000000 // Day in ms 
             return now - cacheDate <= day ? true : false  
         }
 
@@ -426,7 +426,7 @@
 
         getList(path){
             this.apiCacheHandler.setCurrentKey('rijksmuseumlist')
-            this.send(path)
+            this.send(path, 'ps=100')
         }
     }
     class rijksmuseumItemRequest extends Request {
