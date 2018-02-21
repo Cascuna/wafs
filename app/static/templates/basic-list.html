@@ -1,8 +1,10 @@
 <ul>
 <% for(obj of this.objs) { %> 
-    <li> 
-        <img src= <%obj.webImage.url%>>
-        <a href=#rijksmuseum/<%obj.objectNumber%>> <%obj.title%> </a> 
+    <li > 
+        <div class='frame'>
+            <img src=<%obj.webImage.url%>>
+        </div>
+        <a href=#detail_view/<%obj.objectNumber%>> <%obj.title%> </a> 
     </li> 
 <% } %>
 </ul>
