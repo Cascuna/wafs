@@ -21,7 +21,8 @@ export default class RijksmuseumPainterRequest extends Request {
         // artObjectsWithImage.forEach(element => {
         //     element.slug = slugify(element.title)
         // });
-        artObjectsWithImage.artists = artists[0].map(obj => obj = {url: encodeURI(obj.key), naam: obj.key})
+        
+        artObjectsWithImage.artist = this.extraSettings.split('=')[1]
         console.log(artObjectsWithImage)
         return artObjectsWithImage
     }

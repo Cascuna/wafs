@@ -31,20 +31,39 @@ export default class TemplateEngineObj{
         
     inherentTemplate(html){
         let fakethis = this
+        this.templatedHtml = html
+        this.iterations = 0
         return new Promise(function(resolve, reject){
-            console.log('testfunc', html)
-            console.log(html.match(fakethis.importTemplates))
+            console.log('inherent', html.match(fakethis.importTemplates))
+            fakethis.iterationsNeeded = html.match(fakethis.importTemplates).length
+            for(let inherents of html.match(fakethis.importTemplates)){
+                let inherentTemplate = inherents.substring(inherents.indexOf("(")+1, inherents.indexOf(")"))
+                console.log('inner inherent', inherentTemplate)
+                fakethis.loadTemplate(fakethis.templateFolderPath, inherentTemplate)
+                .then((result) => {                
+                    fakethis.templatedHtml = fakethis.templatedHtml.replace('<% implements ('+ inherentTemplate +') %>', result)
+                    console.log(fakethis.templatedHtml)
+                    fakethis.iterations++
+                    console.log('iters',fakethis.iterations, fakethis.iterationsNeeded)
+                    if(fakethis.iterationsNeeded === fakethis.iterations){
+                        console.log('comes here')
+                        resolve(fakethis.templatedHtml)
+                        return fakethis.templatedHtml
+                    }
+                   
+                })
+            }
+    
+            
 
-            let templateName = html.substring(html.indexOf("(")+1, html.indexOf(")"))
-            const sobj = new TemplateEngineObj()
-            fakethis.loadTemplate(fakethis.templateFolderPath, templateName)
-            .then((result) => {
-                console.log()
-                let templatedHtml = html.replace('<% implements ('+ templateName +') %>', result)
-                console.log('bazinga', templatedHtml)
+            // let templateName = html.substring(html.indexOf("(")+1, html.indexOf(")"))
+            // fakethis.loadTemplate(fakethis.templateFolderPath, templateName)
+            // .then((result) => {
+            //     console.log()
+            //     let templatedHtml = html.replace('<% implements ('+ templateName +') %>', result)
+            //     console.log('bazinga', templatedHtml)
 
-                resolve(templatedHtml)
-                return templatedHtml})
+              
 
            
         })

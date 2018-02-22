@@ -14,12 +14,10 @@ export default class Request {
     // TODO: ANDERE FUNCTIE NAAM!
     send(path, extraSettings){
         displaySpinner()
-        console.log(navigator.onLine)
-        console.log(extraSettings)
         let itemsFromCache = this.apiCacheHandler.retrieveCachedItems(this.apiCacheHandler.key)
-        console.log(itemsFromCache)
         if(itemsFromCache === false){
             console.log('Fetching data from API')
+            this.extraSettings = extraSettings
             let absolute_url = this.buildAbsoluteUrl(path, extraSettings, this.settings.format)
             this.request.open('GET', absolute_url, true)
             this._send()

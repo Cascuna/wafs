@@ -14,19 +14,6 @@ import Router from './router.js';
 
 {
     let templateEngineInstance;
-
-
-    // WIP
-    function slugify(text) {
-    return text.toString().toLowerCase()
-        .replace(/\s+/g, '-')           // Spatie naar -
-        .replace(/[^\w\-]+/g, '')       // Verwijder alle niet woordchars
-        .replace(/\-\-+/g, '-')         // Squish --++ naar -
-        .replace(/^-+/, '')             // Trim - van de start
-        .replace(/-+$/, '');            // Trim - van het einde
-    }
-
-
     /* het keywoord class hier is syntaxic sugar voor een Constructor Function.
     Dit is dan ook de reden dat een constructor() verplicht is binnen klasses.
 
