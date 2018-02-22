@@ -1,7 +1,7 @@
 import Request from './request.js';
+import {hookListener} from '../utils.js';
 export default class RijksmuseumListRequest extends Request {
     success(response){
-        console.log(response)
         let listview = document.getElementById("rijksmuseum-listview")
         // let detailview = document.getElementById("rijksmuseum-detailview").innerHTML = ''
         if(listview.classList.contains('hidden')){
@@ -13,10 +13,14 @@ export default class RijksmuseumListRequest extends Request {
         this.templateEngine.render('listview.html', {'objs': response}).then(renderedHtml => {            
             listview.innerHTML = "";
             listview.insertAdjacentHTML('beforeend', renderedHtml)
+            hookListener('rijksmuseum-listview')
         }).catch(error => console.log(error))
+
         Request.prototype.success()
+     
         }
     }
+
     cleanResponse(response){
         let artists = Object.values(response.facets[0]) 
         let rawArtObjects = Object.values(response.artObjects)

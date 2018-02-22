@@ -1,4 +1,5 @@
 import Request from './request.js';
+import {hookListener} from '../utils.js';
 export default class RijksmuseumPainterRequest extends Request {
     success(request){
         let jsonResponse = request
@@ -8,6 +9,7 @@ export default class RijksmuseumPainterRequest extends Request {
             let listview = document.getElementById("rijksmuseum-detailview")
             listview.innerHTML = "";
             listview.insertAdjacentHTML('beforeend', renderedHtml)
+            hookListener('rijksmuseum-detailview')
         }).catch(error => console.log(error))
         Request.prototype.success()
     }

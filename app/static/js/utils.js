@@ -15,4 +15,22 @@ function slugify(text) {
         .replace(/-+$/, '');            // Trim - van het einde
 }
 
-export {displaySpinner, hideSpinner}
+function hookListener(idName) {
+    let searchbar = document.getElementById('art-search-bar')
+    console.log('searchbar', searchbar)
+    searchbar.addEventListener("keyup", event => {
+        let innerList = document.getElementById(idName)
+        console.log(innerList)
+        let innerListItems = [...innerList.querySelectorAll('li')]
+        innerListItems.filter((li) => {
+            if(li.innerHTML.toLowerCase().indexOf(searchbar.value.toLowerCase()) <= -1){
+                li.classList.add('hidden')
+            }
+            else{
+                li.classList.remove('hidden')
+            }
+        })
+    })
+}
+
+export {displaySpinner, hideSpinner, hookListener}

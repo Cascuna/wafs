@@ -109,7 +109,7 @@ ul>li {
     background-image: url('../achtergrond.jpg');
     background-size: cover; */
 }
-ul>li>div>img {
+ul>li div>img {
     border: solid 2px;
     border-bottom-color: #ffe;
     border-left-color: #eed;
@@ -123,13 +123,13 @@ ul>li>div>img {
     object-fit: cover;
     object-position: top; */
 }
-ul>li>a {
-    color:black;
-    text-decoration: none;
-    text-align: center;
-    display: block;
+    ul>li a {
+        color:black;
+        text-decoration: none;
+        text-align: center;
+        display: block;
 
-}
+    }
 
 .frame {
     background-color: #ddc;

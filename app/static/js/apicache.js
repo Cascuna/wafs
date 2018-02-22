@@ -16,7 +16,7 @@ export default class ApiCacheHandler {
     }
     
     compareTime(cacheDate, now){
-        let day = 1// 86000000 // Day in ms 
+        let day =  86000000 // Day in ms 
         return now - cacheDate <= day ? true : false  
     }
 
