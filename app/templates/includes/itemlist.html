@@ -1,0 +1,12 @@
+<ul>
+    <% for(obj of this.objs) { %>
+        <li>
+            <a href=#detail_view/<%obj.objectNumber%>>
+        <div class='frame'>
+            <img src=<%obj.webImage.url%>>
+        </div>
+        <p><%obj.title%></p> 
+    </a>
+        </li>
+        <% } %>
+</ul>

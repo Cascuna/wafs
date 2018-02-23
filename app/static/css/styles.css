@@ -1,9 +1,9 @@
 /* h1, h2, h3, h4, h5, h6, ul, a, p {
     min-width: 30em;
 } */
-html {
-    background-color: #FF6444;
-}
+
+html {}
+
 body {
     margin: 0px;
     display: grid;
@@ -14,15 +14,18 @@ body {
 nav {
     grid-column: span 3;
     text-align: center;
-    width:100%;
-    background-color: #00ADA9;
+    width: 100%;
+    background-color: #40474f;
     top: -.5em;
-
 }
 
+.basisimg {
+    width: 500px;
+    height: 500px;
+}
 
 nav ul {
-    list-style: none;  
+    list-style: none;
 }
 
 nav ul li:focus {
@@ -37,7 +40,9 @@ nav ul li {
 nav ul li a {
     text-decoration: none;
     padding: 1em 1em 1em 1em;
+    color: whitesmoke;
 }
+
 
 /* nav ul li a:hover {
     background-color: rgba(0, 0, 0, 0.3);
@@ -57,7 +62,29 @@ nav ul li:hover::after {
     /* transition: width .3s; */
 }
 
-section {
+button {
+    background-color: #161616;
+    border-radius: -8%;
+    box-sizing: border-box;
+    display: flex;
+    border: 0 none;
+    border-radius: 4px;
+    width: 6em;
+    justify-content: center;
+    height: 2em;
+    box-shadow: 2px 2px 1rem 3px grey;
+    color: white;
+    transition: .2s all ease-in;
+    margin-right: 1em;
+}
+
+button:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+}
+
+section,
+article {
     grid-column: 2;
     display: block;
     position: relative;
@@ -65,13 +92,133 @@ section {
 }
 
 .hidden {
+    display: none;
     opacity: 0;
     margin-top: -33em;
     z-index: -5;
     transition-timing-function: linear, step-end, step-end;
-  
 }
 
 .visible {
     display: block;
+}
+
+p {
+    margin: 0;
+    float: left;
+}
+
+p>div[class='error'] {
+    display: flex;
+}
+
+#errorimage {
+    overflow: auto;
+    vertical-align: middle;
+    float: left;
+    padding-left: 2em;
+    padding-top: 1.4em;
+}
+
+ul {
+    display: grid;
+    grid-template-columns: 2fr 2fr 2fr;
+    list-style: none;
+    grid-gap: 0.5em;
+}
+
+ul>li {
+    margin-bottom: 1em;
+    /* color: white;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    background-image: url('../achtergrond.jpg');
+    background-size: cover; */
+}
+
+ul>li div>img {
+    border: solid 2px;
+    border-bottom-color: #ffe;
+    border-left-color: #eed;
+    border-right-color: #eed;
+    border-top-color: #ccb;
+    max-height: 100%;
+    max-width: 100%;
+    /* width: 20em;
+    height: 15em;
+    cursor: pointer;
+    object-fit: cover;
+    object-position: top; */
+}
+
+ul>li a {
+    color: black;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+}
+
+.frame {
+    background-color: #ddc;
+    border: solid 1em #eee;
+    border-bottom-color: #fff;
+    border-left-color: #eee;
+    border-radius: 2px;
+    border-right-color: #eee;
+    border-top-color: #ddd;
+    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.25) inset, 0 5px 10px 5px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+    display: inline-block;
+    margin: 1em 1em;
+    /* height: 80vh; */
+    padding: 4%;
+    position: relative;
+    text-align: center;
+}
+
+.frame:before {
+    border-radius: 2px;
+    bottom: -2%;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.25) inset;
+    content: "";
+    left: -2%;
+    position: absolute;
+    right: -2%;
+    top: -2%;
+}
+
+.frame:after {
+    border-radius: 2px;
+    bottom: -2.5%;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.25);
+    content: "";
+    left: -2.5%;
+    position: absolute;
+    right: -2.5%;
+    top: -2.5%;
+}
+
+#spinner {
+    height: 5rem;
+    width: 5rem;
+    margin: 0 auto;
+    animation: rotation .6s infinite linear;
+    border-left: .5rem solid var(--spinner-base-color);
+    border-right: .5rem solid var(--spinner-base-color);
+    border-bottom: .5rem solid var(--spinner-base-color);
+    border-top: .5rem solid rgba(0, 174, 239, .8);
+    border-radius: 100%;
+    z-index: 2;
+}
+
+.actionbar {
+    display: flex;
+}
+
+@keyframes rotation {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
