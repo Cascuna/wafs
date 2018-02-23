@@ -67,14 +67,12 @@ export default class TemplateEngine {
                 if (request.response.includes('implements')) {
                     fakescope.inheritTemplate(String(request.response))
                         .then((html) => {
-                            console.log('dit is de resolved html', html)
                             resolve(html)
                             return html
                         })
-                } else {
-                    resolve(request.response)
-                }
+                } else { resolve(request.response) }
             }
+
             request.error = function() {
                 reject(request.status, String(request.response))
             }

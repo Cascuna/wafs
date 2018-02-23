@@ -73,7 +73,6 @@ export default class Router {
             let match = fragment.match(route.re)
             console.log(match)
             if (match) {
-                console.log('match')
                 match.shift()
                 route.handler.apply({}, match)
                 return this
