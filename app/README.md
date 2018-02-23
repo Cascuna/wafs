@@ -16,3 +16,6 @@ De applicatie is bedoelt als kunst navigatie applicatie, de gebruiker kan door d
 - [ ] - apparte pagina kunstenaars 
 - [ ] - De functionaliteit aantrekkelijker maken
 
+[alt text][logo]
+
+[logo]: https://github.com/Cascuna/wafs/blob/master/app/static/img/flowchart-wafs.png "Logo Title Text 2"
