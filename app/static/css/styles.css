@@ -103,9 +103,28 @@ article {
     display: block;
 }
 
-p {
+.painterlist {
+    display: flex;
+    /* flex-direction: column; */
+    flex-wrap: wrap;
+}
+.painterlist li {
+    width: 50%;
+    display: block;
+
+}
+
+.painterlist li a {
+    text-align:left;
+}
+
+
+a p {
+    text-align: center;
     margin: 0;
     float: left;
+    display: inline-block;
+    width: 100%;
 }
 
 p>div[class='error'] {
@@ -148,6 +167,14 @@ ul>li div>img {
     cursor: pointer;
     object-fit: cover;
     object-position: top; */
+}
+
+a {
+    color: black;
+}
+
+li {
+    color: #40474f;
 }
 
 ul>li a {
