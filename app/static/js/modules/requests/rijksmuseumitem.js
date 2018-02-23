@@ -7,8 +7,8 @@ export default class ArtDetailRequest extends Request {
         let detailViewItem = this.templateEngine.render("detail.html", { 'obj': jsonResponse })
             .then(function(detailViewItem) {
                 let detailview = document.getElementById("rijksmuseum-detailview")
-                let listView = document.getElementById('rijksmuseum-listview').classList.add('hidden')
                 detailview.innerHTML = "";
+                let listView = document.getElementById('rijksmuseum-listview').classList.add('hidden')
                 detailview.insertAdjacentHTML('beforeend', detailViewItem)
             }).catch(error => console.log(error))
         Request.prototype.success()

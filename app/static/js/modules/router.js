@@ -97,16 +97,6 @@ export default class Router {
         return this
     }
 
-    navigate(path) {
-        path = path ? path : '';
-        if (this.mode === 'history') {
-            history.pushState(null, null, this.root + this.clearSlashes(path));
-        } else {
-            window.location.href = window.location.href.replace(/#(.*)$/, '') + '#' + path;
-        }
-        return this;
-    }
-
     clearSlashes(path) {
         // Functie om een pad te cleanen
         return path.toString().replace(/\/$/, '').replace(/^\//, '')

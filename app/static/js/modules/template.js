@@ -30,21 +30,26 @@ export default class TemplateEngine {
     }
 
     inheritTemplate(html) {
-        let fakethis = this
-        this.templatedHtml = html
-        this.iterations = 0
+        /*
+        Loopt door de HTML heen en kijkt of er implements tags in staan. Aan de hand van deze tags
+        wordt de desbetreffende template ingeladen, en de HTML in de originele aanroepende template gestopt. 
+        */
+        const fakethis = this
+        let templatedHtml = html
+        let iterations = 0
         return new Promise(function(resolve, reject) {
-            fakethis.iterationsNeeded = html.match(fakethis.importTemplates).length
+            const iterationsNeeded = html.match(fakethis.importTemplates).length
             for (let inherents of html.match(fakethis.importTemplates)) {
-                let inherentTemplate = inherents.substring(inherents.indexOf("(") + 1, inherents.indexOf(")"))
+
+                let inherentTemplate = inherents.substring(inherents.indexOf("(") + 1, inherents.indexOf(")")) // Vekrijg alleen de templatenaam (bijv index.html)
                 fakethis.loadTemplate(fakethis.templateFolderPath, inherentTemplate)
                     .then((result) => {
-                        fakethis.templatedHtml = fakethis.templatedHtml.replace('<% implements (' + inherentTemplate + ') %>', result)
-                        fakethis.iterations++
-                            if (fakethis.iterationsNeeded === fakethis.iterations) {
-                                resolve(fakethis.templatedHtml)
-                                return fakethis.templatedHtml
-                            }
+                        templatedHtml = templatedHtml.replace('<% implements (' + inherentTemplate + ') %>', result)
+                        iterations++
+                        if (iterations === iterationsNeeded) {
+                            resolve(templatedHtml)
+                            return templatedHtml
+                        }
                     })
             }
         })
@@ -54,9 +59,8 @@ export default class TemplateEngine {
     loadTemplate(templateFolderPath, filePath) {
         /* Probeert de aangegeven template in het aangegeven templateFolderPad te vinden en uittelezen
         Deze manier van abstractie zorgt ervoor dat de Template niet in een code block hoeft te staan,
-        en veel leesbaarder is. 
-        TODO: Een fallback functie zou leuk zijn, aldus inline HTML als templates niet werken.*/
-        let fakescope = this //solve met een bind
+        en veel leesbaarder is.  */
+        const fakescope = this //solve met een bind ?
         return new Promise(function(resolve, reject) {
             let absoluteTemplatePath = templateFolderPath + filePath
             let request = new XMLHttpRequest()

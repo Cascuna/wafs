@@ -1,4 +1,7 @@
 export default class ApiCacheHandler {
+    /* 
+    Object verantwoordelijk voor alle interactie tussen een RequestObject & de LocalStorage
+    */
     constructor(key) {
         this.setCurrentKey(key)
     }
@@ -8,31 +11,27 @@ export default class ApiCacheHandler {
     }
 
     writeToCache(key, value) {
-        // Make a new writeToCache entry
-        console.log('value', JSON.stringify(value.artists))
         let entryToCache = { value: value, timestamp: new Date().getTime() }
         localStorage.setItem(key, JSON.stringify(entryToCache))
         return JSON.parse(localStorage.getItem(key)).value
     }
 
     compareTime(cacheDate, now) {
-        let day = 86000000 // Day in ms 
+        /* Functie om te bepalen of de items in de cache vervangen moeten worden */
+        let day = 86000000 // Dag in ms
         return now - cacheDate <= day ? true : false
     }
 
     retrieveCachedItems(key) {
-        console.log(key)
         try {
             let object = JSON.parse(localStorage.getItem(key))
-            console.log(object.value)
 
             let cacheTimestamp = object.timestamp
             let nowTimestamp = new Date().getTime().toString()
-            console.log('Cache entry is valid', this.compareTime(cacheTimestamp, nowTimestamp))
             if (!navigator.onLine) {
+                // Stuur altijd de cache terug als de gebruiker offline is
                 return object.value
             }
-            console.log(this.compareTime(cacheTimestamp, nowTimestamp))
             return this.compareTime(cacheTimestamp, nowTimestamp) ? object.value : false
 
         } catch {

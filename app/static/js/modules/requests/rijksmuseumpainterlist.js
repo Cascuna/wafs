@@ -7,6 +7,8 @@ export default class ArtistListRequest extends Request {
         this.templateEngine.render('artistlistview.html', { 'objs': response }).then(renderedHtml => {
             listview.innerHTML = "";
             listview.insertAdjacentHTML('beforeend', renderedHtml)
+            let detailview = document.getElementById("rijksmuseum-detailview")
+            detailview.innerHTML = "";
             hookListener('rijksmuseum-painterview')
 
         }).catch(error => console.log(error))

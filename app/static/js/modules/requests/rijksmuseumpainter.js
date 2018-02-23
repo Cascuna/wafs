@@ -3,12 +3,11 @@ import { hookListener } from '../utils.js';
 export default class ArtistDetailListRequest extends Request {
     success(request) {
         let jsonResponse = request
-        console.log('dit is de painter request', jsonResponse)
         let detailViewItem = this.templateEngine.render("listview-painter.html", { 'objs': jsonResponse })
             .then(renderedHtml => {
-                let listview = document.getElementById("rijksmuseum-detailview")
-                listview.innerHTML = "";
-                listview.insertAdjacentHTML('beforeend', renderedHtml)
+                let detailView = document.getElementById("rijksmuseum-detailview")
+                detailView.innerHTML = "";
+                detailView.insertAdjacentHTML('beforeend', renderedHtml)
                 hookListener('rijksmuseum-detailview')
             }).catch(error => console.log(error))
         Request.prototype.success()
