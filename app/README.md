@@ -18,6 +18,11 @@ De applicatie is bedoelt als kunst navigatie applicatie, de gebruiker kan door d
 
 ## Flowchart
 Note; omdat mijn code erg generiek is opgezet vind ik een flowchart voor de verschillende requests overbodig
-![alt text][logo]
+![alt text][flowchart]
 
-[logo]: https://github.com/Cascuna/wafs/blob/master/app/static/img/flowchart-wafs.png "Logo Title Text 2"
+## Classdiagram
+![alt text][classdiagram]
+
+[flowchart]: https://github.com/Cascuna/wafs/blob/master/app/static/img/flowchart-wafs.png "Logo Title Text 2"
+
+[classdiagram]: https://github.com/Cascuna/wafs/blob/master/app/static/img/wafs-uml-diagram.png
