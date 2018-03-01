@@ -1,6 +1,7 @@
 import ApiSettings from '../apisettings.js';
 import ApiCacheHandler from '../apicache.js';
 import TemplateEngine from '../template.js';
+import Sections from '../sections.js';
 import { displaySpinner, hideSpinner, renderSection } from '../utils.js';
 export default class Request {
     constructor() {
@@ -15,10 +16,10 @@ export default class Request {
            or retrieve a new set. */
         let itemsFromCache = this.apiCacheHandler.retrieveCachedItems(this.apiCacheHandler.key)
         displaySpinner()
-        if (!navigator.onLine) {
-            this.failure()
-        }
         if (itemsFromCache === false) {
+            if (!navigator.onLine) {
+                this.failure()
+            }
             console.log('Fetching data from API')
             let absolute_url = this.buildAbsoluteUrl(path, extraSettings, this.settings.format)
             this.xhr.open('GET', absolute_url, true)
@@ -52,7 +53,9 @@ export default class Request {
     failure() {
         this.templateEngine.render('apiconnectionerror.html', {}).then(renderedHtml => {
             console.log('fail') 
-   
+            let section = renderSection('error_message', renderedHtml)
+            let sections = new Sections()
+            sections.toggle('error_message')
             hideSpinner()
         }).catch(error => console.log(error))
     }

@@ -6,11 +6,12 @@ function hideSpinner() {
     spinner = document.getElementById('spinner').classList.add("hidden")
 }
 
-function renderSection(sectionId){
+function renderSection(sectionId, renderedHtml){
     let activeSection = document.getElementById(sectionId)
     activeSection.classList.remove("hidden")
     activeSection.innerHTML = ''
     activeSection.insertAdjacentHTML("beforeend", renderedHtml)
+    return activeSection 
 }
 
 function slugify(text) {
