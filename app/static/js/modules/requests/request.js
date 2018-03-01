@@ -1,8 +1,7 @@
 import ApiSettings from '../apisettings.js';
-import TemplateEngine from '../template.js';
 import ApiCacheHandler from '../apicache.js';
-import { displaySpinner } from '../utils.js';
-import { hideSpinner } from '../utils.js';
+import TemplateEngine from '../template.js';
+import { displaySpinner, hideSpinner, renderSection } from '../utils.js';
 export default class Request {
     constructor() {
         this.settings = new ApiSettings()
@@ -11,13 +10,16 @@ export default class Request {
         this.apiCacheHandler = new ApiCacheHandler()
     }
 
-    // TODO: ANDERE FUNCTIE NAAM!
     send(path, extraSettings) {
-        displaySpinner()
+        /* Orchestrating function. Decides wheter to fallback on previous cached items
+           or retrieve a new set. */
         let itemsFromCache = this.apiCacheHandler.retrieveCachedItems(this.apiCacheHandler.key)
+        displaySpinner()
+        if (!navigator.onLine) {
+            this.failure()
+        }
         if (itemsFromCache === false) {
             console.log('Fetching data from API')
-            this.extraSettings = extraSettings
             let absolute_url = this.buildAbsoluteUrl(path, extraSettings, this.settings.format)
             this.xhr.open('GET', absolute_url, true)
             this.prepareRequest()
@@ -49,8 +51,8 @@ export default class Request {
 
     failure() {
         this.templateEngine.render('apiconnectionerror.html', {}).then(renderedHtml => {
-            let listview = document.getElementById("rijksmuseum-listview")
-            listview.insertAdjacentHTML('beforeend', renderedHtml)
+            console.log('fail') 
+   
             hideSpinner()
         }).catch(error => console.log(error))
     }
@@ -59,21 +61,17 @@ export default class Request {
 
 
     onload() {
-        self = this
-        console.log('test')
-        self.xhr.onload = function() {
-            if (self.xhr.status >= 200 && self.xhr.status <= 400) {
-                let responsejson = (JSON.parse(self.xhr.responseText))
-                let cleanedData = self.reformatResponse(responsejson)
-                self.apiCacheHandler.writeToCache(self.apiCacheHandler.key, cleanedData)
-                self.success(cleanedData)
+        /* enforces the basic path A request object will follow on success or failure */
+        this.xhr.onload = () => {    
+            if (this.xhr.status >= 200 && this.xhr.status <= 400) {
+                let responsejson = JSON.parse(this.xhr.responseText)
+                let cleanedData = this.reformatResponse(responsejson)
+                this.apiCacheHandler.writeToCache(this.apiCacheHandler.key, cleanedData)
+                this.success(cleanedData)
             } else {
-                self.failure(self.xhr)
+                this.failure(self.xhr)
             }
-        }
-        if (!navigator.onLine) {
-            self.failure()
-        }
+        } 
     }
 
     prepareRequest() {

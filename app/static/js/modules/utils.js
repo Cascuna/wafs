@@ -6,6 +6,13 @@ function hideSpinner() {
     spinner = document.getElementById('spinner').classList.add("hidden")
 }
 
+function renderSection(sectionId){
+    let activeSection = document.getElementById(sectionId)
+    activeSection.classList.remove("hidden")
+    activeSection.innerHTML = ''
+    activeSection.insertAdjacentHTML("beforeend", renderedHtml)
+}
+
 function slugify(text) {
     return text.toString().toLowerCase()
         .replace(/\s+/g, '-')           // Spatie naar -
@@ -33,4 +40,4 @@ function hookListener(idName) {
     })
 }
 
-export {displaySpinner, hideSpinner, hookListener}
+export {displaySpinner, hideSpinner, hookListener, renderSection}
