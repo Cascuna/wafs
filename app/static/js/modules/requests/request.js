@@ -14,6 +14,7 @@ export default class Request {
     send(path, extraSettings) {
         /* Orchestrating function. Decides wheter to fallback on previous cached items
            or retrieve a new set. */
+        this.extraSettings = extraSettings
         let itemsFromCache = this.apiCacheHandler.retrieveCachedItems(this.apiCacheHandler.key)
         displaySpinner()
         if (itemsFromCache === false) {
